@@ -5,14 +5,30 @@ import { InOrbitIcon } from './in-orbit-icon'
 import { Progress, ProgressIndicator } from './ui/progress-bar'
 import { Separator } from './ui/separator'
 import { OutlineButton } from './ui/outline-button'
+import { useQuery } from '@tanstack/react-query'
+import { GetSummary } from '../http/get-summary'
+import dayjs from 'dayjs'
+import ptBR from 'dayjs/locale/pt-BR'
+import { PendingGoals } from './pending-goals'
+
+dayjs.locale( ptBR )
 export function Summary()
 {
+    const { data } = useQuery( {
+        queryKey: ['summary'],
+        queryFn: GetSummary
+    } )
+    if ( !data )
+        return
+    const completedPercentage = Math.round( data?.completed * 100 / data?.total )
+    const firstDayOFWeek = dayjs().startOf( 'week' ).format( 'D MMM' )
+    const lastDayOFWeek = dayjs().endOf( 'week' ).format( 'D MMM' )
     return (
         <div className="flex flex-col  gap-6 py-10 max-w-[480px] px-5 mx-auto">
             <div className="flex  items-center justify-between ">
                 <div className='flex items-center gap-3 '>
                     <InOrbitIcon />
-                    <span>5 a 10 de agosto</span>
+                    <span >{firstDayOFWeek} - {lastDayOFWeek}</span>
                 </div>
                 <DialogTrigger asChild>
                     <Button size='sm'>
@@ -23,51 +39,51 @@ export function Summary()
             </div>
             <div className='flex flex-col gap-3'>
                 <Progress max={15} value={3}>
-                    <ProgressIndicator style={{ width: "50 %" }} />
+                    <ProgressIndicator style={{ width: `${ completedPercentage }%` }} />
                 </Progress>
                 <div className='flex items-center justify-between text-xs text-zinc-400'>
-                    <span>Você completou <span className='text-zinc-100'>8</span> de <span className='text-zinc-100'>15</span> metas nessa semana.</span>
-                    <span>50%</span>
+                    <span>Você completou <span className='text-zinc-100'>{data?.completed}</span> de <span className='text-zinc-100'>{data?.total}</span> metas nessa semana.</span>
+                    <span>{completedPercentage}%</span>
 
                 </div>
                 <Separator />
-                <div className='flex gap-3 flex-wrap' >
-                    <OutlineButton>
-                        <Plus className='size-4 text-zinc-600' />
-                        Meditar
-                    </OutlineButton>
-                    <OutlineButton>
-                        <Plus className='size-4 text-zinc-600' />
-                        Meditar
-                    </OutlineButton>
-                    <OutlineButton>
-                        <Plus className='size-4 text-zinc-600' />
-                        Meditar
-                    </OutlineButton>
-                    <OutlineButton>
-                        <Plus className='size-4 text-zinc-600' />
-                        Meditar
-                    </OutlineButton>
-                    <OutlineButton>
-                        <Plus className='size-4 text-zinc-600' />
-                        Exercício
-                    </OutlineButton>
-                </div>
-                <div className='flex flex-col gap-36' >
+                <PendingGoals />
+                <div className='flex flex-col gap-6' >
                     <h2 className='text-xl font-medium'>Sua semana</h2>
-                    <div className='flex flex-col gap-4'>
-                        <h3 className='font-medium' >Domingo <span className='text-zinc-400 text-xs'>(10 de setembro)</span>
+                    {
+                        data.goalsPerDay.map( goal =>
+                        {
+                            const weekDay = dayjs( goal.date ).format( 'dddd' )
+                            const formattedDate = dayjs( goal.date ).format( 'D [de] MMMM' )
+                            return (
+                                <div key={goal.date} className='flex flex-col gap-4'>
+                                    <h3 className='font-medium ' >
+                                        <span className='capitalize'>
+                                            {weekDay}
+                                        </span>
+                                        <span className='text-zinc-400 text-xs'>({formattedDate})</span>
 
-                        </h3>
-                        <ul className='flex flex-col gap-3'>
-                            <li className='flex items-center gap-2'>
-                                <CheckCircle2 className='size-4 text-pink-500 ' />
-                                <span className='text-sm text-zinc-400'>
-                                    Você completou "<span className='text-zinc-100'>Acordar cedo</span>" às <span className='text-zinc-100'>08:13h</span>
-                                </span>
-                            </li>
-                        </ul>
-                    </div>
+                                    </h3>
+                                    <ul className='flex flex-col gap-3'>
+                                        {
+                                            goal.completions.map( ( completion, index ) =>
+                                            {
+                                                const time = dayjs( completion.completedAt ).format( 'HH:mm' )
+                                                return (
+                                                    <li key={completion.id} className='flex items-center gap-2'>
+                                                        <CheckCircle2 className='size-4 text-pink-500 ' />
+                                                        <span className='text-sm text-zinc-400'>
+                                                            Você completou "<span className='text-zinc-100'>{completion.title}</span>" às <span className='text-zinc-100'>{time}h</span>
+                                                        </span>
+                                                    </li>
+                                                )
+                                            } )
+                                        }
+                                    </ul>
+                                </div>
+                            )
+                        } )
+                    }
                 </div>
 
             </div>

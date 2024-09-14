@@ -15,7 +15,6 @@ dayjs.extend( isToday );
 export function PendingGoals()
 {
 
-    const today = dayjs().toDate().getDay()
 
     const queryClient = useQueryClient()
     const pedingGoals = useQuery( {

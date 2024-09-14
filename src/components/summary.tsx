@@ -4,19 +4,17 @@ import { CheckCircle2, Plus } from 'lucide-react'
 import { InOrbitIcon } from './in-orbit-icon'
 import { Progress, ProgressIndicator } from './ui/progress-bar'
 import { Separator } from './ui/separator'
-import { OutlineButton } from './ui/outline-button'
 import { useQuery } from '@tanstack/react-query'
 import { GetSummary } from '../http/get-summary'
 import dayjs from 'dayjs'
-import ptBR from 'dayjs/locale/pt-BR'
 import { PendingGoals } from './pending-goals'
 
-dayjs.locale( ptBR )
 export function Summary()
 {
     const { data } = useQuery( {
         queryKey: ['summary'],
-        queryFn: GetSummary
+        queryFn: GetSummary,
+        staleTime: 1000 * 60, // 60 seconds
     } )
     if ( !data )
         return
@@ -51,7 +49,7 @@ export function Summary()
                 <div className='flex flex-col gap-6' >
                     <h2 className='text-xl font-medium'>Sua semana</h2>
                     {
-                        data.goalsPerDay.map( goal =>
+                        data.goalsPerDay?.map( goal =>
                         {
                             const weekDay = dayjs( goal.date ).format( 'dddd' )
                             const formattedDate = dayjs( goal.date ).format( 'D [de] MMMM' )

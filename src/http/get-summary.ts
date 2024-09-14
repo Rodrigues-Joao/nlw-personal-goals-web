@@ -1,6 +1,7 @@
 type GoalsPerDayCompletionType = {
     id: string;
     title: string;
+    goalId: string;
     completedAt: string;
 }
 type GoalsPerDayType = {
@@ -11,7 +12,7 @@ type GoalsPerDayType = {
 type SummaryResponseType = {
     completed: number;
     total: number;
-    goalsPerDay: GoalsPerDayType[];
+    goalsPerDay?: GoalsPerDayType[];
 }
 export async function GetSummary(): Promise<SummaryResponseType>
 {
